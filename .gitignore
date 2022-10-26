@@ -1,0 +1,20 @@
+# OS files
+.DS_Store
+
+# Python virtual env
+venv
+
+# Flask sessions
+flask_session
+
+# Python cache
+__pycache__
+
+# Githib example workflow
+.github
+
+# Environmental variables
+.env
+
+# Requirements.txt for other python version
+requirements-*.txt
