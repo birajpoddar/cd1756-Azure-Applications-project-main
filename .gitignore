@@ -14,7 +14,7 @@ __pycache__
 .github
 
 # Environmental variables
-.env
+*.env
 
 # Requirements.txt for other python version
 requirements-*.txt
