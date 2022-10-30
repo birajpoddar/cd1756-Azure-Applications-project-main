@@ -54,10 +54,18 @@ jobs:
           name: python-app
           path: .
           
+      - name: 'Deploy to Azure App Service'
+        uses: azure/webapps-deploy@v2
+        id: deploy-to-appservice
+        with:
+          app-name: 'azurearticlecms'
+          slot-name: 'Production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_53B0220F48754C128163CAD881AC1AF1 }}
+
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
         with:
           app-name: 'azurearticlecms'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_53B0220F48754C128163CAD881AC1AF1 }}
+          publish-profile: ${{ secrets.AZURE_WEB_APP }}
