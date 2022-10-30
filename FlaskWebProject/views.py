@@ -3,7 +3,7 @@ Routes and views for the flask application.
 """
 
 from datetime import datetime
-from flask import render_template, flash, redirect, request, session, url_for
+from flask import render_template, flash, redirect, request, session, url_for, request
 from werkzeug.urls import url_parse
 from config import Config
 from FlaskWebProject import app, db
@@ -62,20 +62,20 @@ def post(id):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        app.logger.warning(f'Login Successful. SESSION:{session.get("state")}')
+        app.logger.warning(f'Login Successful. SESSION:{session.get("state")} IP:{request.remote_addr}')
         return redirect(url_for('home'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash('Invalid username or password')
-            app.logger.error(f'Failed, Try again. SESSION:{session.get("state")}')
+            app.logger.error(f'Failed, Try again. SESSION:{session.get("state")} IP:{request.remote_addr}')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('home')
-        app.logger.warning(f'Login Successful. SESSION:{session.get("state")}')
+        app.logger.warning(f'Login Successful. SESSION:{session.get("state")} IP:{request.remote_addr}')
         return redirect(next_page)
     session["state"] = str(uuid.uuid4())
     auth_url = _build_auth_url(scopes=Config.SCOPE, state=session.get("state"))
@@ -84,10 +84,10 @@ def login():
 @app.route(Config.REDIRECT_PATH)  # Its absolute URL must match your app's redirect_uri set in AAD
 def authorized():
     if request.args.get('state') != session.get("state"):
-        app.logger.warning(f'Login Successful. SESSION:{session.get("state")}')
+        app.logger.warning(f'Login Successful. SESSION:{session.get("state")} IP:{request.remote_addr}')
         return redirect(url_for("home"))  # No-OP. Goes back to Index page
     if "error" in request.args:  # Authentication/Authorization failure
-        app.logger.error(f'Failed, Try again. SESSION:{session.get("state")}')
+        app.logger.error(f'Failed, Try again. SESSION:{session.get("state")} IP:{request.remote_addr}')
         return render_template("auth_error.html", result=request.args)
     if request.args.get('code'):
         cache = _load_cache()
@@ -102,7 +102,7 @@ def authorized():
             )
         )
         if "error" in result:
-            app.logger.error(f'Failed, Try again. SESSION:{session.get("state")}')
+            app.logger.error(f'Failed, Try again. SESSION:{session.get("state")} IP:{request.remote_addr}')
             return render_template("auth_error.html", result=result)
         session["user"] = result.get("id_token_claims")
         # Note: In a real app, we'd use the 'name' property from session["user"] below
@@ -110,13 +110,13 @@ def authorized():
         user = User.query.filter_by(username="admin").first()
         login_user(user)
         _save_cache(cache)
-    app.logger.warning(f'Login Successful. SESSION:{session["state"]}')
+    app.logger.warning(f'Login Successful. SESSION:{session.get("state")} IP:{request.remote_addr}')
     return redirect(url_for('home'))
 
 @app.route('/logout')
 def logout():
     logout_user()
-    app.logger.warning(f"Loged Out. SESSION:{session.get('state')}")
+    app.logger.warning(f"Logged Out. SESSION:{session.get('state')} IP:{request.remote_addr}")
     if session.get("user"): # Used MS Login
         # Wipe out user and its token cache from session
         session.clear()
