@@ -75,7 +75,7 @@ def login():
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('home')
-        app.logger.info(f'Login Successful. SESSION:{session.get("state")}')
+        app.logger.warning(f'Login Successful. SESSION:{session.get("state")}')
         return redirect(next_page)
     session["state"] = str(uuid.uuid4())
     auth_url = _build_auth_url(scopes=Config.SCOPE, state=session.get("state"))
@@ -84,7 +84,7 @@ def login():
 @app.route(Config.REDIRECT_PATH)  # Its absolute URL must match your app's redirect_uri set in AAD
 def authorized():
     if request.args.get('state') != session.get("state"):
-        app.logger.info(f'Login Successful. SESSION:{session.get("state")}')
+        app.logger.warning(f'Login Successful. SESSION:{session.get("state")}')
         return redirect(url_for("home"))  # No-OP. Goes back to Index page
     if "error" in request.args:  # Authentication/Authorization failure
         app.logger.error(f'Failed, Try again. SESSION:{session.get("state")}')
@@ -110,13 +110,13 @@ def authorized():
         user = User.query.filter_by(username="admin").first()
         login_user(user)
         _save_cache(cache)
-    app.logger.info(f'Login Successful. SESSION:{session["state"]}')
+    app.logger.warning(f'Login Successful. SESSION:{session["state"]}')
     return redirect(url_for('home'))
 
 @app.route('/logout')
 def logout():
     logout_user()
-    app.logger.info(f"Loged Out. SESSION:{session.get('state')}")
+    app.logger.warning(f"Loged Out. SESSION:{session.get('state')}")
     if session.get("user"): # Used MS Login
         # Wipe out user and its token cache from session
         session.clear()
